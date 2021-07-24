@@ -39,7 +39,7 @@ public class RabbitMQEventStreamService implements EventStreamService {
             log.debug("mq message consumed");
         };
         ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost("localhost");
+        factory.setHost("192.168.2.16");
         try {
             Connection connection = factory.newConnection();
             Channel channel = connection.createChannel();
@@ -58,7 +58,7 @@ public class RabbitMQEventStreamService implements EventStreamService {
     public void next(String appName, boolean internal, String topic, StoredEvent event) {
         String routingKey = appName + "." + (internal ? "internal" : "external") + "." + topic;
         ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost("localhost");
+        factory.setHost("192.168.2.16");
         try (Connection connection = factory.newConnection();
              Channel channel = connection.createChannel()) {
             channel.exchangeDeclare(EXCHANGE_NAME, "topic");

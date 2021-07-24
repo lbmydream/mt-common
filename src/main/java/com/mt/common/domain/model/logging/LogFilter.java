@@ -12,9 +12,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.UUID;
 
-/**
- * set UUID & CLIENT_IP for logging purpose,
- */
+
+//set UUID & CLIENT_IP for logging purpose,
 @Component
 @Slf4j
 @Order(Ordered.HIGHEST_PRECEDENCE)
