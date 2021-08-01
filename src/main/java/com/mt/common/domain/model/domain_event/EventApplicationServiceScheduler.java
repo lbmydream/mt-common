@@ -37,7 +37,7 @@ public class EventApplicationServiceScheduler {
         if (!storedEvents.isEmpty()) {
             log.debug("publish event since id {}", eventTracker.getLastPublishedId());
             for (StoredEvent event : storedEvents) {
-                log.debug("publishing event with id {}", event.getId());
+                log.debug("publishing event {} with id {}",event.getName(), event.getId());
                 CommonDomainRegistry.getEventStreamService().next(appName, event.isInternal(), event.getTopic(), event);
             }
             trackerRepository
