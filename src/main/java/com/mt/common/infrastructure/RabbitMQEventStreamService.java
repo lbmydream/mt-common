@@ -32,11 +32,11 @@ public class RabbitMQEventStreamService implements EventStreamService {
             queueName = Long.toString(id, 36);
         }
         DeliverCallback deliverCallback = (consumerTag, delivery) -> {
-            log.debug("mq message received");
+            log.trace("mq message received");
             String s = new String(delivery.getBody(), StandardCharsets.UTF_8);
             StoredEvent event = CommonDomainRegistry.getCustomObjectSerializer().deserialize(s, StoredEvent.class);
             consumer.accept(event);
-            log.debug("mq message consumed");
+            log.trace("mq message consumed");
         };
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("192.168.2.16");

@@ -35,9 +35,9 @@ public class EventApplicationServiceScheduler {
                 trackerRepository.publishedNotificationTracker();
         List<StoredEvent> storedEvents = eventStore.allStoredEventsSince(eventTracker.getLastPublishedId());
         if (!storedEvents.isEmpty()) {
-            log.debug("publish event since id {}", eventTracker.getLastPublishedId());
+            log.trace("publish event since id {}", eventTracker.getLastPublishedId());
             for (StoredEvent event : storedEvents) {
-                log.debug("publishing event {} with id {}",event.getName(), event.getId());
+                log.trace("publishing event {} with id {}",event.getName(), event.getId());
                 CommonDomainRegistry.getEventStreamService().next(appName, event.isInternal(), event.getTopic(), event);
             }
             trackerRepository

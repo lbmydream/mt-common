@@ -24,7 +24,7 @@ public class SubscribeForEventAspectConfig {
 
     @Around(value = "com.mt.common.domain.model.domain_event.SubscribeForEventAspectConfig.listen()")
     public Object around(ProceedingJoinPoint jp) throws Throwable {
-        log.debug("subscribe for event change {}",jp.getSignature().toShortString());
+        log.trace("subscribe for event change {}",jp.getSignature().toShortString());
         DomainEventPublisher
                 .instance()
                 .subscribe(new DomainEventSubscriber<DomainEvent>() {
@@ -38,7 +38,7 @@ public class SubscribeForEventAspectConfig {
                     }
                 });
         Object proceed = jp.proceed();
-        log.debug("unsubscribe for event change {}",jp.getSignature().toShortString());
+        log.trace("unsubscribe for event change {}",jp.getSignature().toShortString());
         DomainEventPublisher.instance().reset();
         return proceed;
     }
