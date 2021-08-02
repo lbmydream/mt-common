@@ -1,5 +1,6 @@
 package com.mt.common.domain.model.domain_event;
 
+import com.mt.common.domain.model.clazz.ClassUtility;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -24,12 +25,16 @@ public class SubscribeForEventAspectConfig {
 
     @Around(value = "com.mt.common.domain.model.domain_event.SubscribeForEventAspectConfig.listen()")
     public Object around(ProceedingJoinPoint jp) throws Throwable {
-        log.trace("subscribe for event change {}",jp.getSignature().toShortString());
+        log.trace("subscribe for event change for {}",jp.getSignature().toShortString());
         DomainEventPublisher
                 .instance()
                 .subscribe(new DomainEventSubscriber<DomainEvent>() {
                     public void handleEvent(DomainEvent event) {
-                        log.debug("append domain event {}", event.getName());
+                        if(log.isTraceEnabled()){
+                        log.trace("appending {}",event.getName());
+                        }else{
+                        log.debug("appending {}", ClassUtility.getShortName(event.getName()));
+                        }
                         eventRepository.append(event);
                     }
 
@@ -38,7 +43,7 @@ public class SubscribeForEventAspectConfig {
                     }
                 });
         Object proceed = jp.proceed();
-        log.trace("unsubscribe for event change {}",jp.getSignature().toShortString());
+        log.trace("unsubscribe for event change for{}",jp.getSignature().toShortString());
         DomainEventPublisher.instance().reset();
         return proceed;
     }
