@@ -1,6 +1,7 @@
 package com.mt.common.domain;
 
 
+import com.mt.common.domain.model.domain_event.SagaEventStreamService;
 import com.mt.common.domain.model.idempotent.ChangeRecordRepository;
 import com.mt.common.domain.model.unique_id.UniqueIdGeneratorService;
 import com.mt.common.domain.model.domain_event.EventStreamService;
@@ -16,12 +17,12 @@ public class CommonDomainRegistry {
     @Getter
     private static CustomObjectSerializer customObjectSerializer;
     @Getter
-    private static EventStreamService eventStreamService;
+    private static SagaEventStreamService eventStreamService;
     @Getter
     private static ChangeRecordRepository changeRecordRepository;
 
     @Autowired
-    public void setEventStreamService(EventStreamService eventStreamService) {
+    public void setEventStreamService(SagaEventStreamService eventStreamService) {
         CommonDomainRegistry.eventStreamService = eventStreamService;
     }
 

@@ -8,6 +8,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.expression.MethodBasedEvaluationContext;
 import org.springframework.core.DefaultParameterNameDiscoverer;
@@ -22,6 +23,10 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 @Aspect
 @Slf4j
+@ConditionalOnProperty(
+        value="mt.distributed_lock",
+        havingValue = "true",
+        matchIfMissing = true)
 public class DistributedLockAspectConfig {
     private static final Integer LOCK_WAIT_TIME = 5;
 
