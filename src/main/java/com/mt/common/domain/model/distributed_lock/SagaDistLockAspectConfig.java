@@ -27,22 +27,22 @@ import java.util.concurrent.TimeUnit;
         value="mt.distributed_lock",
         havingValue = "true",
         matchIfMissing = true)
-public class DistributedLockAspectConfig {
+public class SagaDistLockAspectConfig {
     private static final Integer LOCK_WAIT_TIME = 5;
 
     private final RedissonClient redissonClient;
 
-    public DistributedLockAspectConfig(RedissonClient redissonClient) {
+    public SagaDistLockAspectConfig(RedissonClient redissonClient) {
         this.redissonClient = redissonClient;
     }
 
-    @Around(value = "@annotation(distributedLock)",argNames = "distributedLock")
-    public Object around(ProceedingJoinPoint joinPoint, DistributedLock distributedLock) throws Throwable {
-        Long lockKeyValue = extractKey(joinPoint, distributedLock);
-        String key = lockKeyValue.toString()+"_dist_lock";
+    @Around(value = "@annotation(SagaDistLock)",argNames = "SagaDistLock")
+    public Object around(ProceedingJoinPoint joinPoint, SagaDistLock SagaDistLock) throws Throwable {
+        String lockKeyValue = extractKey(joinPoint, SagaDistLock);
+        String key = lockKeyValue.replace("_cancel","").toString()+"_dist_lock";
         Object obj;
         RLock lock = redissonClient.getLock(key);
-        lock.lock(distributedLock.unlockAfter(), TimeUnit.SECONDS);
+        lock.lock(SagaDistLock.unlockAfter(), TimeUnit.SECONDS);
         log.trace("acquire lock success for {}", key);
         obj = joinPoint.proceed();
                 //below will not work properly
@@ -61,13 +61,13 @@ public class DistributedLockAspectConfig {
         Method agentMethod = methodSignature.getMethod();
         return pjp.getTarget().getClass().getMethod(agentMethod.getName(),agentMethod.getParameterTypes());
     }
-    private Long extractKey(ProceedingJoinPoint joinPoint, DistributedLock lockConfig) throws NoSuchMethodException {
+    private String extractKey(ProceedingJoinPoint joinPoint, SagaDistLock lockConfig) throws NoSuchMethodException {
         String lockParam = lockConfig.keyExpression();
         Method targetMethod = getTargetMethod(joinPoint);
         ExpressionParser parser = new SpelExpressionParser();
         EvaluationContext context = new MethodBasedEvaluationContext(new Object(), targetMethod, joinPoint.getArgs(),
                 new DefaultParameterNameDiscoverer());
         Expression expression = parser.parseExpression(lockParam);
-        return expression.getValue(context, Long.class);
+        return expression.getValue(context, String.class);
     }
 }

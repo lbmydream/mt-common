@@ -107,14 +107,15 @@ public class JacksonObjectSerializer implements CustomObjectSerializer {
     }
 
     @Override
-    public <T> Collection<T> deepCopyCollection(Collection<T> object) {
-        try {
-            return objectMapper.readValue(objectMapper.writeValueAsString(object), new TypeReference<Collection<T>>() {
-            });
-        } catch (IOException e) {
-            log.error("error during object mapper list deep copy", e);
-            throw new UnableToDeepCopyCollectionException();
-        }
+    public <T> Collection<T> deepCopyCollection(Collection<T> object,Class<T> clazz) {
+            return deserializeCollection(serializeCollection(object),clazz);
+//        try {
+//            return objectMapper.readValue(objectMapper.writeValueAsString(object), new TypeReference<Collection<T>>() {
+//            });
+//        } catch (IOException e) {
+//            log.error("error during object mapper list deep copy", e);
+//            throw new UnableToDeepCopyCollectionException();
+//        }
     }
 
 

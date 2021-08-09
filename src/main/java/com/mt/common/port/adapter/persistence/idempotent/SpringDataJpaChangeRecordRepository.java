@@ -20,7 +20,7 @@ import java.util.Optional;
 
 /**
  * for saga, where forward events (e.g. 127c17e0-c4d6-11eb-ab24-712aed736a9c)
- * and reverse events(e.g. 127c17e0-c4d6-11eb-ab24-712aed736a9c_cancelled) exist
+ * and reverse events(e.g. 127c17e0-c4d6-11eb-ab24-712aed736a9c_cancel) exist
  */
 @Repository
 @Primary

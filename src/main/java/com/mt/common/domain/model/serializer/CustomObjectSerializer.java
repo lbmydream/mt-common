@@ -16,7 +16,7 @@ public interface CustomObjectSerializer {
 
     <T> String serializeCollection(Collection<T> object);
     <T> Collection<T> deserializeCollection(String str, Class<T> clazz);
-    <T> Collection<T> deepCopyCollection(Collection<T> object);
+    <T> Collection<T> deepCopyCollection(Collection<T> object,Class<T> tClass);
 
 
 
