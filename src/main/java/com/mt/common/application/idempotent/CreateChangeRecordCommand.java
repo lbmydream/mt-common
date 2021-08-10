@@ -8,4 +8,5 @@ public class CreateChangeRecordCommand {
     private String changeId;
     private String aggregateName;
     private String returnValue;
+    private transient boolean cancelChangeIdFound=false;
 }

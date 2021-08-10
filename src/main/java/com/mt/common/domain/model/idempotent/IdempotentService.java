@@ -20,6 +20,9 @@ import static com.mt.common.domain.model.idempotent.ChangeRecord_.ENTITY_TYPE;
 public class IdempotentService {
     private static final String CANCEL="_cancel";
     public <T> String idempotent(String changeId, Function<CreateChangeRecordCommand, String> function, String aggregateName) {
+        return idempotent(changeId,function,aggregateName,false);
+    }
+    public <T> String idempotent(String changeId, Function<CreateChangeRecordCommand, String> function, String aggregateName,boolean forceCancel) {
         if (isCancelChange(changeId)) {
         //reverse action
             SumPagedRep<ChangeRecord> reverseChanges = CommonApplicationServiceRegistry
@@ -38,15 +41,21 @@ public class IdempotentService {
                 Optional<ChangeRecord> forwardChange = forwardChanges.findFirst();
                 if (forwardChange.isPresent()) {
                     CreateChangeRecordCommand command = createChangeRecordCommand(changeId, aggregateName, null);
+                    command.setCancelChangeIdFound(true);
                     CommonApplicationServiceRegistry.getChangeRecordApplicationService().createReverse(command);
                     log.debug("cancelling change...");
                     return function.apply(command);
                 } else {
+                    if(forceCancel){
+                    log.debug("change not found, do force cancel");
+
+                    }else{
                     log.debug("change not found, do empty cancel");
+                    }
                     //change not found
                     CreateChangeRecordCommand command = createChangeRecordCommand(changeId, aggregateName, null);
                     CommonApplicationServiceRegistry.getChangeRecordApplicationService().createEmptyReverse(command);
-                    return null;
+                    return forceCancel?function.apply(command):null;
                 }
             }
         } else {
