@@ -9,4 +9,6 @@ public class CreateChangeRecordCommand {
     private String aggregateName;
     private String returnValue;
     private transient boolean cancelChangeIdFound=false;
+    private transient boolean changeExecuted=false;
+    private transient boolean changeAlreadyExist=false;
 }
