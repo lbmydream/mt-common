@@ -44,7 +44,12 @@ public class RabbitMQEventStreamService implements SagaEventStreamService {
             String s = new String(delivery.getBody(), StandardCharsets.UTF_8);
             StoredEvent event = CommonDomainRegistry.getCustomObjectSerializer().deserialize(s, StoredEvent.class);
             log.debug("handling {} with id {}", ClassUtility.getShortName(event.getName()), event.getId());
+            try {
+
             consumer.accept(event);
+            }catch (Exception ex){
+                log.error("error during consume, catch error to maintain connection",ex);
+            }
             log.trace("mq message consumed");
         };
         ConnectionFactory factory = new ConnectionFactory();

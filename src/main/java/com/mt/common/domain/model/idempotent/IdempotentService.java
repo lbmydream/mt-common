@@ -33,7 +33,6 @@ public class IdempotentService {
             Optional<ChangeRecord> reverseChange = reverseChanges.findFirst();
             if(reverseChange.isPresent()){
                 log.debug("change already exist, no change will happen");
-                command.setChangeAlreadyExist(true);
                 return command;
             }else{
 
@@ -43,8 +42,6 @@ public class IdempotentService {
 
                 Optional<ChangeRecord> forwardChange = forwardChanges.findFirst();
                 if (forwardChange.isPresent()) {
-                    command.setChangeExecuted(true);
-                    command.setCancelChangeIdFound(true);
                     CommonApplicationServiceRegistry.getChangeRecordApplicationService().createReverse(command);
                     log.debug("cancelling change...");
                     function.apply(command);
@@ -64,7 +61,6 @@ public class IdempotentService {
             Optional<ChangeRecord> forwardChange = forwardChanges.findFirst();
             if(forwardChange.isPresent()){
                 log.debug("change already exist, return saved results");
-                command.setChangeAlreadyExist(true);
                 return command;
             }else{
                 SumPagedRep<ChangeRecord> reverseChanges = CommonApplicationServiceRegistry
@@ -80,7 +76,6 @@ public class IdempotentService {
                 }else{
                     log.debug("making change...");
                     CommonApplicationServiceRegistry.getChangeRecordApplicationService().createForward(command);
-                    command.setChangeExecuted(true);
                      function.apply(command);
                     return command;
                 }
