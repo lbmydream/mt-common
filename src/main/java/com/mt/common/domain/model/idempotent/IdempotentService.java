@@ -42,9 +42,9 @@ public class IdempotentService {
 
                 Optional<ChangeRecord> forwardChange = forwardChanges.findFirst();
                 if (forwardChange.isPresent()) {
-                    CommonApplicationServiceRegistry.getChangeRecordApplicationService().createReverse(command);
                     log.debug("cancelling change...");
                     function.apply(command);
+                    CommonApplicationServiceRegistry.getChangeRecordApplicationService().createReverse(command);
                     return command;
                 } else {
                     log.debug("change not found, do empty cancel");
@@ -75,8 +75,8 @@ public class IdempotentService {
                     return command;
                 }else{
                     log.debug("making change...");
-                    CommonApplicationServiceRegistry.getChangeRecordApplicationService().createForward(command);
                      function.apply(command);
+                    CommonApplicationServiceRegistry.getChangeRecordApplicationService().createForward(command);
                     return command;
                 }
             }
@@ -101,10 +101,10 @@ public class IdempotentService {
                 Optional<ChangeRecord> forwardChange = forwardChanges.findFirst();
                 if (forwardChange.isPresent()) {
                     CreateChangeRecordCommand command = createChangeRecordCommand(changeId, aggregateName, null);
-                    command.setCancelChangeIdFound(true);
-                    CommonApplicationServiceRegistry.getChangeRecordApplicationService().createReverse(command);
                     log.debug("cancelling change...");
-                    return function.apply(command);
+                    String apply = function.apply(command);
+                    CommonApplicationServiceRegistry.getChangeRecordApplicationService().createReverse(command);
+                    return apply;
                 } else {
                     if(forceCancel){
                     log.debug("change not found, do force cancel");
@@ -142,8 +142,9 @@ public class IdempotentService {
             }else{
                 log.debug("making change...");
                 CreateChangeRecordCommand command = createChangeRecordCommand(changeId, aggregateName, null);
+                String apply = function.apply(command);
                 CommonApplicationServiceRegistry.getChangeRecordApplicationService().createForward(command);
-                return function.apply(command);
+                return apply;
             }
             }
         }
