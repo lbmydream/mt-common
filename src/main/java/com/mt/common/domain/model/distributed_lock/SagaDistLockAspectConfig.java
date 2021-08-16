@@ -39,9 +39,9 @@ public class SagaDistLockAspectConfig {
     @Around(value = "@annotation(SagaDistLock)",argNames = "SagaDistLock")
     public Object around(ProceedingJoinPoint joinPoint, SagaDistLock SagaDistLock) throws Throwable {
         String lockKeyValue = extractKey(joinPoint, SagaDistLock);
-        String key = lockKeyValue.replace("_cancel","").toString()+"_dist_lock";
+        String key = lockKeyValue.replace("_cancel","") +"_dist_lock";
         Object obj;
-        RLock lock = redissonClient.getLock(key);
+        RLock lock = redissonClient.getLock(key+"_"+SagaDistLock.aggregateName());
         lock.lock(SagaDistLock.unlockAfter(), TimeUnit.SECONDS);
         log.trace("acquire lock success for {}", key);
         obj = joinPoint.proceed();

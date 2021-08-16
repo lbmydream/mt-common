@@ -23,7 +23,7 @@ public class IdempotentService {
         return idempotent(changeId,function,aggregateName,false);
     }
     //return flag indicate if change is made
-    public <T> CreateChangeRecordCommand idempotentMsg(String changeId, Function<CreateChangeRecordCommand, String> function, String aggregateName) {
+    public void idempotentMsg(String changeId, Function<CreateChangeRecordCommand, String> function, String aggregateName) {
         CreateChangeRecordCommand command = createChangeRecordCommand(changeId, aggregateName, null);
         if (isCancelChange(changeId)) {
             //reverse action
@@ -33,7 +33,6 @@ public class IdempotentService {
             Optional<ChangeRecord> reverseChange = reverseChanges.findFirst();
             if(reverseChange.isPresent()){
                 log.debug("change already exist, no change will happen");
-                return command;
             }else{
 
                 SumPagedRep<ChangeRecord> forwardChanges = CommonApplicationServiceRegistry
@@ -45,12 +44,10 @@ public class IdempotentService {
                     log.debug("cancelling change...");
                     function.apply(command);
                     CommonApplicationServiceRegistry.getChangeRecordApplicationService().createReverse(command);
-                    return command;
                 } else {
                     log.debug("change not found, do empty cancel");
                     //change not found
                     CommonApplicationServiceRegistry.getChangeRecordApplicationService().createEmptyReverse(command);
-                    return command;
                 }
             }
         } else {
@@ -61,7 +58,6 @@ public class IdempotentService {
             Optional<ChangeRecord> forwardChange = forwardChanges.findFirst();
             if(forwardChange.isPresent()){
                 log.debug("change already exist, return saved results");
-                return command;
             }else{
                 SumPagedRep<ChangeRecord> reverseChanges = CommonApplicationServiceRegistry
                         .getChangeRecordApplicationService()
@@ -72,12 +68,10 @@ public class IdempotentService {
                     log.debug("change already cancelled, do empty change");
                     DomainEventPublisher.instance().publish(new HangingTxDetected(changeId));
                     CommonApplicationServiceRegistry.getChangeRecordApplicationService().createEmptyForward(command);
-                    return command;
                 }else{
-                    log.debug("making change...");
+                    log.debug("making change with {}",command.getChangeId());
                      function.apply(command);
                     CommonApplicationServiceRegistry.getChangeRecordApplicationService().createForward(command);
-                    return command;
                 }
             }
         }

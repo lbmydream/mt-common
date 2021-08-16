@@ -48,6 +48,7 @@ public class RabbitMQEventStreamService implements SagaEventStreamService {
 
             consumer.accept(event);
             }catch (Exception ex){
+
                 log.error("error during consume, catch error to maintain connection",ex);
             }
             log.trace("mq message consumed");
