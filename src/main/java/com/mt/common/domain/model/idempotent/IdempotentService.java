@@ -24,6 +24,9 @@ public class IdempotentService {
     }
     //return flag indicate if change is made
     public void idempotentMsg(String changeId, Function<CreateChangeRecordCommand, String> function, String aggregateName) {
+         idempotentMsgCancel(changeId,function,null,aggregateName);
+    }
+    public void idempotentMsgCancel(String changeId, Function<CreateChangeRecordCommand, String> function,@Nullable Function<CreateChangeRecordCommand, String> cancelReply, String aggregateName) {
         CreateChangeRecordCommand command = createChangeRecordCommand(changeId, aggregateName, null);
         if (isCancelChange(changeId)) {
             //reverse action
@@ -43,9 +46,13 @@ public class IdempotentService {
                 if (forwardChange.isPresent()) {
                     log.debug("cancelling change...");
                     function.apply(command);
+                    if(cancelReply!=null)
+                    cancelReply.apply(command);
                     CommonApplicationServiceRegistry.getChangeRecordApplicationService().createReverse(command);
                 } else {
                     log.debug("change not found, do empty cancel");
+                    if(cancelReply!=null)
+                    cancelReply.apply(command);
                     //change not found
                     CommonApplicationServiceRegistry.getChangeRecordApplicationService().createEmptyReverse(command);
                 }

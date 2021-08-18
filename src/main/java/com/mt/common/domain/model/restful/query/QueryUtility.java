@@ -158,6 +158,11 @@ public class QueryUtility {
         Optional.ofNullable(queryContext.getCountPredicates()).ifPresent(e -> e.add(queryContext.getCountRoot().get(fieldName).as(String.class).in(collect)));
     }
 
+    public static <T> void addLongInPredicate(Set<Long> collect, String fieldName, QueryContext<T> queryContext) {
+        queryContext.getPredicates().add(queryContext.getRoot().get(fieldName).as(Long.class).in(collect));
+        Optional.ofNullable(queryContext.getCountPredicates()).ifPresent(e -> e.add(queryContext.getCountRoot().get(fieldName).as(Long.class).in(collect)));
+    }
+
     public static <T> void addDomainIdInPredicate(Set<String> collect, String fieldName, QueryContext<T> queryContext) {
         queryContext.getPredicates().add(queryContext.getRoot().get(fieldName).get(CommonConstant.DOMAIN_ID).as(String.class).in(collect));
         Optional.ofNullable(queryContext.getCountPredicates()).ifPresent(e -> e.add(queryContext.getCountRoot().get(fieldName).get(CommonConstant.DOMAIN_ID).as(String.class).in(collect)));
