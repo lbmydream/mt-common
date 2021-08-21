@@ -18,41 +18,34 @@ import static com.mt.common.domain.model.idempotent.ChangeRecord_.ENTITY_TYPE;
 @Service
 @Slf4j
 public class IdempotentService {
-    private static final String CANCEL="_cancel";
-    public <T> String idempotent(String changeId, Function<CreateChangeRecordCommand, String> function, String aggregateName) {
-        return idempotent(changeId,function,aggregateName,false);
-    }
-    //return flag indicate if change is made
-    public void idempotentMsg(String changeId, Function<CreateChangeRecordCommand, String> function, String aggregateName) {
-         idempotentMsgCancel(changeId,function,null,aggregateName);
-    }
-    public void idempotentMsgCancel(String changeId, Function<CreateChangeRecordCommand, String> function,@Nullable Function<CreateChangeRecordCommand, String> cancelReply, String aggregateName) {
+    private static final String CANCEL = "_cancel";
+
+    public void idempotentMsg(String changeId, Function<CreateChangeRecordCommand, String> function, Function<CreateChangeRecordCommand, String> reply, String aggregateName) {
         CreateChangeRecordCommand command = createChangeRecordCommand(changeId, aggregateName, null);
         if (isCancelChange(changeId)) {
             //reverse action
             SumPagedRep<ChangeRecord> reverseChanges = CommonApplicationServiceRegistry
                     .getChangeRecordApplicationService()
-                    .changeRecords(CHANGE_ID + ":" + changeId  + "," + ENTITY_TYPE + ":" + aggregateName);
+                    .changeRecords(CHANGE_ID + ":" + changeId + "," + ENTITY_TYPE + ":" + aggregateName);
             Optional<ChangeRecord> reverseChange = reverseChanges.findFirst();
-            if(reverseChange.isPresent()){
+            if (reverseChange.isPresent()) {
                 log.debug("change already exist, no change will happen");
-            }else{
+            } else {
 
                 SumPagedRep<ChangeRecord> forwardChanges = CommonApplicationServiceRegistry
                         .getChangeRecordApplicationService()
-                        .changeRecords(CHANGE_ID + ":" + changeId.replace(CANCEL,"") + "," + ENTITY_TYPE + ":" + aggregateName);
+                        .changeRecords(CHANGE_ID + ":" + changeId.replace(CANCEL, "") + "," + ENTITY_TYPE + ":" + aggregateName);
 
                 Optional<ChangeRecord> forwardChange = forwardChanges.findFirst();
                 if (forwardChange.isPresent()) {
                     log.debug("cancelling change...");
                     function.apply(command);
-                    if(cancelReply!=null)
-                    cancelReply.apply(command);
+                    reply.apply(command);
                     CommonApplicationServiceRegistry.getChangeRecordApplicationService().createReverse(command);
                 } else {
                     log.debug("change not found, do empty cancel");
-                    if(cancelReply!=null)
-                    cancelReply.apply(command);
+                    command.setEmptyOpt(true);
+                    reply.apply(command);
                     //change not found
                     CommonApplicationServiceRegistry.getChangeRecordApplicationService().createEmptyReverse(command);
                 }
@@ -63,9 +56,9 @@ public class IdempotentService {
                     .getChangeRecordApplicationService()
                     .changeRecords(CHANGE_ID + ":" + changeId + "," + ENTITY_TYPE + ":" + aggregateName);
             Optional<ChangeRecord> forwardChange = forwardChanges.findFirst();
-            if(forwardChange.isPresent()){
+            if (forwardChange.isPresent()) {
                 log.debug("change already exist, return saved results");
-            }else{
+            } else {
                 SumPagedRep<ChangeRecord> reverseChanges = CommonApplicationServiceRegistry
                         .getChangeRecordApplicationService()
                         .changeRecords(CHANGE_ID + ":" + changeId + CANCEL + "," + ENTITY_TYPE + ":" + aggregateName);
@@ -73,31 +66,35 @@ public class IdempotentService {
                 if (reverseChange.isPresent()) {
                     //change has been cancelled, perform null operation
                     log.debug("change already cancelled, do empty change");
+                    command.setEmptyOpt(true);
+                    reply.apply(command);
                     DomainEventPublisher.instance().publish(new HangingTxDetected(changeId));
                     CommonApplicationServiceRegistry.getChangeRecordApplicationService().createEmptyForward(command);
-                }else{
-                    log.debug("making change with {}",command.getChangeId());
-                     function.apply(command);
+                } else {
+                    log.debug("making change with {}", command.getChangeId());
+                    function.apply(command);
+                    reply.apply(command);
                     CommonApplicationServiceRegistry.getChangeRecordApplicationService().createForward(command);
                 }
             }
         }
     }
-    public <T> String idempotent(String changeId, Function<CreateChangeRecordCommand, String> function, String aggregateName,boolean forceCancel) {
+
+    public <T> String idempotent(String changeId, Function<CreateChangeRecordCommand, String> function, String aggregateName) {
         if (isCancelChange(changeId)) {
-        //reverse action
+            //reverse action
             SumPagedRep<ChangeRecord> reverseChanges = CommonApplicationServiceRegistry
                     .getChangeRecordApplicationService()
-                    .changeRecords(CHANGE_ID + ":" + changeId  + "," + ENTITY_TYPE + ":" + aggregateName);
+                    .changeRecords(CHANGE_ID + ":" + changeId + "," + ENTITY_TYPE + ":" + aggregateName);
             Optional<ChangeRecord> reverseChange = reverseChanges.findFirst();
-            if(reverseChange.isPresent()){
+            if (reverseChange.isPresent()) {
                 log.debug("change already exist, return saved results");
                 return reverseChange.get().getReturnValue();
-            }else{
+            } else {
 
-            SumPagedRep<ChangeRecord> forwardChanges = CommonApplicationServiceRegistry
-                    .getChangeRecordApplicationService()
-                    .changeRecords(CHANGE_ID + ":" + changeId.replace(CANCEL,"") + "," + ENTITY_TYPE + ":" + aggregateName);
+                SumPagedRep<ChangeRecord> forwardChanges = CommonApplicationServiceRegistry
+                        .getChangeRecordApplicationService()
+                        .changeRecords(CHANGE_ID + ":" + changeId.replace(CANCEL, "") + "," + ENTITY_TYPE + ":" + aggregateName);
 
                 Optional<ChangeRecord> forwardChange = forwardChanges.findFirst();
                 if (forwardChange.isPresent()) {
@@ -107,16 +104,10 @@ public class IdempotentService {
                     CommonApplicationServiceRegistry.getChangeRecordApplicationService().createReverse(command);
                     return apply;
                 } else {
-                    if(forceCancel){
-                    log.debug("change not found, do force cancel");
-
-                    }else{
-                    log.debug("change not found, do empty cancel");
-                    }
                     //change not found
                     CreateChangeRecordCommand command = createChangeRecordCommand(changeId, aggregateName, null);
                     CommonApplicationServiceRegistry.getChangeRecordApplicationService().createEmptyReverse(command);
-                    return forceCancel?function.apply(command):null;
+                    return null;
                 }
             }
         } else {
@@ -124,29 +115,29 @@ public class IdempotentService {
             SumPagedRep<ChangeRecord> forwardChanges = CommonApplicationServiceRegistry
                     .getChangeRecordApplicationService()
                     .changeRecords(CHANGE_ID + ":" + changeId + "," + ENTITY_TYPE + ":" + aggregateName);
-                Optional<ChangeRecord> forwardChange = forwardChanges.findFirst();
-            if(forwardChange.isPresent()){
+            Optional<ChangeRecord> forwardChange = forwardChanges.findFirst();
+            if (forwardChange.isPresent()) {
                 log.debug("change already exist, return saved results");
                 return forwardChange.get().getReturnValue();
-            }else{
-            SumPagedRep<ChangeRecord> reverseChanges = CommonApplicationServiceRegistry
-                    .getChangeRecordApplicationService()
-                    .changeRecords(CHANGE_ID + ":" + changeId + CANCEL + "," + ENTITY_TYPE + ":" + aggregateName);
-            Optional<ChangeRecord> reverseChange = reverseChanges.findFirst();
-            if (reverseChange.isPresent()) {
-                //change has been cancelled, perform null operation
-                log.debug("change already cancelled, do empty change");
-                DomainEventPublisher.instance().publish(new HangingTxDetected(changeId));
+            } else {
+                SumPagedRep<ChangeRecord> reverseChanges = CommonApplicationServiceRegistry
+                        .getChangeRecordApplicationService()
+                        .changeRecords(CHANGE_ID + ":" + changeId + CANCEL + "," + ENTITY_TYPE + ":" + aggregateName);
+                Optional<ChangeRecord> reverseChange = reverseChanges.findFirst();
+                if (reverseChange.isPresent()) {
+                    //change has been cancelled, perform null operation
+                    log.debug("change already cancelled, do empty change");
+                    DomainEventPublisher.instance().publish(new HangingTxDetected(changeId));
                     CreateChangeRecordCommand command = createChangeRecordCommand(changeId, aggregateName, null);
                     CommonApplicationServiceRegistry.getChangeRecordApplicationService().createEmptyForward(command);
-                return null;
-            }else{
-                log.debug("making change...");
-                CreateChangeRecordCommand command = createChangeRecordCommand(changeId, aggregateName, null);
-                String apply = function.apply(command);
-                CommonApplicationServiceRegistry.getChangeRecordApplicationService().createForward(command);
-                return apply;
-            }
+                    return null;
+                } else {
+                    log.debug("making change...");
+                    CreateChangeRecordCommand command = createChangeRecordCommand(changeId, aggregateName, null);
+                    String apply = function.apply(command);
+                    CommonApplicationServiceRegistry.getChangeRecordApplicationService().createForward(command);
+                    return apply;
+                }
             }
         }
     }
