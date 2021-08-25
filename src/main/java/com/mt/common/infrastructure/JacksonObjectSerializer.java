@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
+import com.fasterxml.jackson.databind.type.MapType;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import com.mt.common.domain.model.serializer.CustomObjectSerializer;
@@ -14,9 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -71,6 +71,18 @@ public class JacksonObjectSerializer implements CustomObjectSerializer {
         } catch (IOException e) {
             log.error("error during object mapper deserialize", e);
             throw new UnableToDeSerializeException();
+        }
+    }
+
+    @Override
+    public <T, Z> Map<T, Z> deserializeToMap(String str, Class<T> keyClass, Class<Z> valueClass) {
+        TypeFactory typeFactory = objectMapper.getTypeFactory();
+        MapType mapType = typeFactory.constructMapType(HashMap.class, keyClass, valueClass);
+        try {
+            return objectMapper.readValue(str, mapType);
+        } catch (IOException e) {
+            log.error("error during object mapper deserialize", e);
+            throw new UnableToDeSerializeToMapException();
         }
     }
 
@@ -135,6 +147,8 @@ public class JacksonObjectSerializer implements CustomObjectSerializer {
     }
 
     public static class UnableToDeSerializeException extends RuntimeException {
+    }
+    public static class UnableToDeSerializeToMapException extends RuntimeException {
     }
 
     public static class UnableToJsonPatchException extends RuntimeException {

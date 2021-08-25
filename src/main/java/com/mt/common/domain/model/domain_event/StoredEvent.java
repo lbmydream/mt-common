@@ -31,5 +31,8 @@ public class StoredEvent implements Serializable {
         this.internal = aDomainEvent.isInternal();
         this.topic = aDomainEvent.getTopic();
     }
+    public void setIdExplicitly(long id){
+        this.id=id;
+    }
 
 }

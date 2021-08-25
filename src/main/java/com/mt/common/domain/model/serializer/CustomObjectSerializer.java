@@ -4,6 +4,7 @@ import com.github.fge.jsonpatch.JsonPatch;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public interface CustomObjectSerializer {
     byte[] nativeSerialize(Object object);
@@ -12,6 +13,7 @@ public interface CustomObjectSerializer {
     
     <T> String serialize(T object);
     <T> T deserialize(String str, Class<T> clazz);
+    <T,Z> Map<T,Z> deserializeToMap(String str, Class<T> keyClass,Class<Z> valueClass);
     <T> T deepCopy(T object, Class<T> clazz);
 
     <T> String serializeCollection(Collection<T> object);
