@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package com.mt.common.port.adapter.persistence.event_tracker;
+package com.mt.common.port.adapter.persistence.domain_event;
 
 import com.mt.common.domain.model.domain_event.StoredEvent;
 import com.mt.common.domain.model.notification.PublishedEventTracker;
@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Repository
-public interface HibernatePublishedEventTrackerRepository extends PublishedEventTrackerRepository, JpaRepository<PublishedEventTracker, Long> {
+public interface SpringDataJpaPublishedEventTrackerRepository extends PublishedEventTrackerRepository, JpaRepository<PublishedEventTracker, Long> {
     default PublishedEventTracker publishedNotificationTracker() {
         Iterable<PublishedEventTracker> all = findAll();
         List<PublishedEventTracker> objects = new ArrayList<>(1);

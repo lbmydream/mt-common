@@ -19,7 +19,7 @@ public class SumPagedRep<T> implements Serializable {
         this.totalItemCount = aLong;
     }
 
-    public SumPagedRep(SumPagedRep<Object> original, Function<Object, T> data) {
+    public <S> SumPagedRep(SumPagedRep<S> original, Function<S, T> data) {
         this.data = original.getData().stream().map(data).collect(Collectors.toList());
         this.totalItemCount = original.getTotalItemCount();
     }

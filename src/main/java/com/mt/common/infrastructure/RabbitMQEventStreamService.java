@@ -2,7 +2,6 @@ package com.mt.common.infrastructure;
 
 import com.mt.common.domain.CommonDomainRegistry;
 import com.mt.common.domain.model.clazz.ClassUtility;
-import com.mt.common.domain.model.domain_event.EventStreamService;
 import com.mt.common.domain.model.domain_event.MQHelper;
 import com.mt.common.domain.model.domain_event.SagaEventStreamService;
 import com.mt.common.domain.model.domain_event.StoredEvent;
@@ -46,10 +45,10 @@ public class RabbitMQEventStreamService implements SagaEventStreamService {
             log.debug("handling {} with id {}", ClassUtility.getShortName(event.getName()), event.getId());
             try {
 
-            consumer.accept(event);
-            }catch (Exception ex){
+                consumer.accept(event);
+            } catch (Exception ex) {
 
-                log.error("error during consume, catch error to maintain connection",ex);
+                log.error("error during consume, catch error to maintain connection", ex);
             }
             log.trace("mq message consumed");
         };
@@ -71,22 +70,22 @@ public class RabbitMQEventStreamService implements SagaEventStreamService {
 
     @Override
     public void replyOf(String subscribedApplicationName, boolean internal, String eventName, Consumer<StoredEvent> consumer) {
-        subscribe(subscribedApplicationName,internal, MQHelper.handleReplyOf(appName,eventName),consumer,MQHelper.replyOf(eventName));
+        subscribe(subscribedApplicationName, internal, MQHelper.handleReplyOf(appName, eventName), consumer, MQHelper.replyOf(eventName));
     }
 
     @Override
     public void replyCancelOf(String subscribedApplicationName, boolean internal, String eventName, Consumer<StoredEvent> consumer) {
-        subscribe(subscribedApplicationName,internal, MQHelper.handleReplyCancelOf(appName,eventName),consumer,MQHelper.replyCancelOf(eventName));
+        subscribe(subscribedApplicationName, internal, MQHelper.handleReplyCancelOf(appName, eventName), consumer, MQHelper.replyCancelOf(eventName));
     }
 
     @Override
     public void cancelOf(String subscribedApplicationName, boolean internal, String eventName, Consumer<StoredEvent> consumer) {
-        subscribe(subscribedApplicationName,internal, MQHelper.handleCancelOf(appName,eventName),consumer,MQHelper.cancelOf(eventName));
+        subscribe(subscribedApplicationName, internal, MQHelper.handleCancelOf(appName, eventName), consumer, MQHelper.cancelOf(eventName));
     }
 
     @Override
     public void of(String subscribedApplicationName, boolean internal, String eventName, Consumer<StoredEvent> consumer) {
-        subscribe(subscribedApplicationName,internal, MQHelper.handlerOf(appName,eventName),consumer,eventName);
+        subscribe(subscribedApplicationName, internal, MQHelper.handlerOf(appName, eventName), consumer, eventName);
     }
 
     @Override
@@ -103,5 +102,10 @@ public class RabbitMQEventStreamService implements SagaEventStreamService {
         } catch (IOException | TimeoutException e) {
             log.error("unable to publish message to rabbitmq", e);
         }
+    }
+
+    @Override
+    public void next(StoredEvent event) {
+        next(appName, event.isInternal(), event.getTopic(), event);
     }
 }

@@ -23,6 +23,7 @@ public class StoredEvent implements Serializable {
     private String name;
     private boolean internal;
     private String topic;
+    private String domainId;
 
     public StoredEvent(DomainEvent aDomainEvent) {
         this.eventBody = CommonDomainRegistry.getCustomObjectSerializer().serialize(aDomainEvent);
@@ -30,9 +31,12 @@ public class StoredEvent implements Serializable {
         this.name = aDomainEvent.getName();
         this.internal = aDomainEvent.isInternal();
         this.topic = aDomainEvent.getTopic();
+        if (aDomainEvent.getDomainId() != null)
+            this.domainId = aDomainEvent.getDomainId().getDomainId();
     }
-    public void setIdExplicitly(long id){
-        this.id=id;
+
+    public void setIdExplicitly(long id) {
+        this.id = id;
     }
 
 }

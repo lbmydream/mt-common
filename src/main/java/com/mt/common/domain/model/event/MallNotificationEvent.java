@@ -30,7 +30,7 @@ public class MallNotificationEvent extends DomainEvent {
     public void addDetail(String key,String value){
         this.details.put(key,value);
     }
-    public void updateOrderId(String orderId){
+    public void setOrderId(String orderId){
         setDomainId(new DomainId(orderId));
     }
     public static MallNotificationEvent create(String name){

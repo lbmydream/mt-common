@@ -5,6 +5,7 @@ public class AppInfo {
     public static final String MT1_APP_NAME="proxy";
     public static final String MT2_APP_NAME="profile";
     public static final String MT3_APP_NAME="mall";
+    public static final String MT6_APP_NAME="payment";
 
     public static class EventName {
         public static final String MT3_MALL_NOTIFICATION ="MT3_MALL_NOTIFICATION";
@@ -17,5 +18,7 @@ public class AppInfo {
     public static class MISC {
         public static final String SKU_CHANGE_DETAIL="SKU_CHANGE_DETAIL";
         public static final String ADMIN_OPT="ADMIN_OPT";
+        public static final String STACK_TRACE="STACK_TRACE";
+        public static final String MESSAGE="MESSAGE";
     }
 }

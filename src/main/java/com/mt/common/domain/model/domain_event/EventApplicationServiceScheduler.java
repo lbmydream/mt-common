@@ -17,13 +17,6 @@ import java.util.List;
 @Component
 @EnableScheduling
 public class EventApplicationServiceScheduler {
-    @Autowired
-    private EventStreamService eventStreamService;
-    @Autowired
-    private EventRepository eventStore;
-
-    @Autowired
-    private PublishedEventTrackerRepository trackerRepository;
 
     @Value("${spring.application.name}")
     private String appName;
@@ -32,15 +25,15 @@ public class EventApplicationServiceScheduler {
     @Scheduled(fixedRateString = "${fixedRate.in.milliseconds.notification}")
     public void streaming() {
         PublishedEventTracker eventTracker =
-                trackerRepository.publishedNotificationTracker();
-        List<StoredEvent> storedEvents = eventStore.allStoredEventsSince(eventTracker.getLastPublishedId());
+                CommonDomainRegistry.getPublishedEventTrackerRepository().publishedNotificationTracker();
+        List<StoredEvent> storedEvents = CommonDomainRegistry.getEventRepository().allStoredEventsSince(eventTracker.getLastPublishedId());
         if (!storedEvents.isEmpty()) {
             log.trace("publish event since id {}", eventTracker.getLastPublishedId());
             for (StoredEvent event : storedEvents) {
                 log.trace("publishing event {} with id {}",event.getName(), event.getId());
                 CommonDomainRegistry.getEventStreamService().next(appName, event.isInternal(), event.getTopic(), event);
             }
-            trackerRepository
+            CommonDomainRegistry.getPublishedEventTrackerRepository()
                     .trackMostRecentPublishedNotification(eventTracker, storedEvents);
         }
     }

@@ -1,8 +1,10 @@
 package com.mt.common.domain;
 
 
+import com.mt.common.domain.model.domain_event.EventRepository;
 import com.mt.common.domain.model.domain_event.SagaEventStreamService;
 import com.mt.common.domain.model.idempotent.ChangeRecordRepository;
+import com.mt.common.domain.model.notification.PublishedEventTrackerRepository;
 import com.mt.common.domain.model.unique_id.UniqueIdGeneratorService;
 import com.mt.common.domain.model.domain_event.EventStreamService;
 import com.mt.common.domain.model.serializer.CustomObjectSerializer;
@@ -20,7 +22,19 @@ public class CommonDomainRegistry {
     private static SagaEventStreamService eventStreamService;
     @Getter
     private static ChangeRecordRepository changeRecordRepository;
+    @Getter
+    private static EventRepository eventRepository;
+    @Getter
+    private static PublishedEventTrackerRepository publishedEventTrackerRepository;
 
+    @Autowired
+    public void setPublishedEventTrackerRepository(PublishedEventTrackerRepository publishedEventTrackerRepository) {
+        CommonDomainRegistry.publishedEventTrackerRepository = publishedEventTrackerRepository;
+    }
+    @Autowired
+    public void setEventRepository(EventRepository eventRepository) {
+        CommonDomainRegistry.eventRepository = eventRepository;
+    }
     @Autowired
     public void setEventStreamService(SagaEventStreamService eventStreamService) {
         CommonDomainRegistry.eventStreamService = eventStreamService;

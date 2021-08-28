@@ -1,5 +1,6 @@
 package com.mt.common.application;
 
+import com.mt.common.application.domain_event.StoredEventApplicationService;
 import com.mt.common.application.idempotent.ChangeRecordApplicationService;
 import com.mt.common.domain.model.idempotent.IdempotentService;
 import lombok.Getter;
@@ -11,8 +12,14 @@ public class CommonApplicationServiceRegistry {
     @Getter
     private static ChangeRecordApplicationService changeRecordApplicationService;
     @Getter
+    private static StoredEventApplicationService storedEventApplicationService;
+    @Getter
     private static IdempotentService idempotentService;
 
+    @Autowired
+    public void setStoredEventApplicationService(StoredEventApplicationService storedEventApplicationService) {
+        CommonApplicationServiceRegistry.storedEventApplicationService = storedEventApplicationService;
+    }
     @Autowired
     public void setChangeRecordApplicationService(ChangeRecordApplicationService idempotentApplicationService) {
         CommonApplicationServiceRegistry.changeRecordApplicationService = idempotentApplicationService;
