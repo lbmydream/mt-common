@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 @Getter
 public class StoredEventQuery extends QueryCriteria {
     private Set<Long> ids;
+    private Set<String> domainIds;
     private DomainEventSort sort;
     public StoredEventQuery(String queryParam, String pageParam, String skipCount) {
         setQueryConfig(new QueryConfig(skipCount));
@@ -27,6 +28,9 @@ public class StoredEventQuery extends QueryCriteria {
         Map<String, String> stringStringMap = QueryUtility.parseQuery(queryParam);
         Optional.ofNullable(stringStringMap.get("id")).ifPresent(e -> {
             this.ids = Arrays.stream(e.split("\\.")).map(Long::parseLong).collect(Collectors.toSet());
+        });
+        Optional.ofNullable(stringStringMap.get("domainId")).ifPresent(e -> {
+            this.domainIds = Arrays.stream(e.split("\\.")).collect(Collectors.toSet());
         });
     }
 
