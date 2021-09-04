@@ -28,6 +28,32 @@ public class RabbitMQEventStreamService implements SagaEventStreamService {
     @Value("${spring.application.name}")
     private String appName;
 
+    private Connection connectionPub;
+    private Connection connectionSub;
+
+    public RabbitMQEventStreamService() {
+        log.debug("start of configure rabbitmq");
+        ConnectionFactory factory = new ConnectionFactory();
+        factory.setHost("192.168.2.16");
+        try {
+            connectionPub = factory.newConnection();
+            connectionSub = factory.newConnection();
+        } catch (IOException | TimeoutException e) {
+            log.error("unable to publish message to rabbitmq", e);
+            try {
+                connectionPub.close();
+            } catch (IOException ex) {
+                log.error("error during close pub connection", ex);
+            }
+            try {
+                connectionSub.close();
+            } catch (IOException ex) {
+                log.error("error during close sub connection", ex);
+            }
+        }
+        log.debug("end of configure rabbitmq");
+    }
+
     @Override
     public void subscribe(String subscribedApplicationName, boolean internal, @Nullable String fixedQueueName, Consumer<StoredEvent> consumer, String... topics) {
         String routingKeyWithoutTopic = subscribedApplicationName + "." + (internal ? "internal" : "external") + ".";
@@ -44,26 +70,22 @@ public class RabbitMQEventStreamService implements SagaEventStreamService {
             StoredEvent event = CommonDomainRegistry.getCustomObjectSerializer().deserialize(s, StoredEvent.class);
             log.debug("handling {} with id {}", ClassUtility.getShortName(event.getName()), event.getId());
             try {
-
                 consumer.accept(event);
             } catch (Exception ex) {
-
                 log.error("error during consume, catch error to maintain connection", ex);
             }
             log.trace("mq message consumed");
         };
-        ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost("192.168.2.16");
         try {
-            Connection connection = factory.newConnection();
-            Channel channel = connection.createChannel();
+            Channel channel = connectionSub.createChannel();
             channel.queueDeclare(queueName, true, false, false, null);
+            checkExchange(channel);
             for (String topic : topics) {
                 channel.queueBind(queueName, EXCHANGE_NAME, routingKeyWithoutTopic + topic);
             }
             channel.basicConsume(queueName, true, deliverCallback, consumerTag -> {
             });
-        } catch (IOException | TimeoutException e) {
+        } catch (IOException e) {
             log.error("unable create queue for {} with routing key {} and queue name {}", subscribedApplicationName, routingKeyWithoutTopic, queueName, e);
         }
     }
@@ -91,11 +113,8 @@ public class RabbitMQEventStreamService implements SagaEventStreamService {
     @Override
     public void next(String appName, boolean internal, String topic, StoredEvent event) {
         String routingKey = appName + "." + (internal ? "internal" : "external") + "." + topic;
-        ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost("192.168.2.16");
-        try (Connection connection = factory.newConnection();
-             Channel channel = connection.createChannel()) {
-            channel.exchangeDeclare(EXCHANGE_NAME, "topic");
+        try (Channel channel = connectionPub.createChannel()) {
+            checkExchange(channel);
             channel.basicPublish(EXCHANGE_NAME, routingKey,
                     null,
                     CommonDomainRegistry.getCustomObjectSerializer().serialize(event).getBytes(StandardCharsets.UTF_8));
@@ -107,5 +126,8 @@ public class RabbitMQEventStreamService implements SagaEventStreamService {
     @Override
     public void next(StoredEvent event) {
         next(appName, event.isInternal(), event.getTopic(), event);
+    }
+    private void  checkExchange(Channel channel) throws IOException {
+        channel.exchangeDeclare(EXCHANGE_NAME, "topic");
     }
 }
