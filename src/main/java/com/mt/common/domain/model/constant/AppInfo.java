@@ -6,6 +6,7 @@ public class AppInfo {
     public static final String MT2_APP_NAME="profile";
     public static final String MT3_APP_NAME="mall";
     public static final String MT6_APP_NAME="payment";
+    public static final String MT15_APP_NAME="saga";
 
     public static class EventName {
         public static final String MT3_MALL_NOTIFICATION ="MT3_MALL_NOTIFICATION";

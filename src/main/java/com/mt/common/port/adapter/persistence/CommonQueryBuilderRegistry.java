@@ -9,10 +9,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class CommonQueryBuilderRegistry {
     @Getter
-    private static SpringDataJpaChangeRecordRepository.JpaCriteriaApiChangeRecordAdaptor changeRecordQueryBuilder;
+    private static SpringDataJpaChangeRecordRepository.SpringDataJpaCriteriaApiChangeRecordAdaptor changeRecordQueryBuilder;
 
     @Autowired
-    public void setChangeRecordQueryBuilder(SpringDataJpaChangeRecordRepository.JpaCriteriaApiChangeRecordAdaptor changeRecordQueryBuilder) {
+    public void setChangeRecordQueryBuilder(SpringDataJpaChangeRecordRepository.SpringDataJpaCriteriaApiChangeRecordAdaptor changeRecordQueryBuilder) {
         CommonQueryBuilderRegistry.changeRecordQueryBuilder = changeRecordQueryBuilder;
     }
     @Getter
