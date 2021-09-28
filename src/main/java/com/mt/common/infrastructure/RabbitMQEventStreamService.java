@@ -11,9 +11,11 @@ import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.DeliverCallback;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nullable;
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeoutException;
@@ -27,14 +29,15 @@ public class RabbitMQEventStreamService implements SagaEventStreamService {
 
     @Value("${spring.application.name}")
     private String appName;
-
+    @Resource
+    private Environment env;
     private Connection connectionPub;
     private Connection connectionSub;
 
-    public RabbitMQEventStreamService() {
+    public RabbitMQEventStreamService(@Value("${mt.url.support.mq}") final String url) {
         log.debug("start of configure rabbitmq");
         ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost("192.168.2.16");
+        factory.setHost(url);
         try {
             connectionPub = factory.newConnection();
             connectionSub = factory.newConnection();
